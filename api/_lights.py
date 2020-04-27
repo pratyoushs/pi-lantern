@@ -56,3 +56,18 @@ class Lights:
         print(response.status_code)
         print(response.content)
         return response
+    
+    def change_xy(self, username, id, x, y):
+        if x < 0:
+            x = 0
+        elif x > 1:
+            x = 1
+        if y < 0:
+            y = 0
+        elif y > 1:
+            y = 1
+        response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
+        json = {"xy":[x,y]})
+        print(response.status_code)
+        print(response.content)
+        return response
