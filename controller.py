@@ -18,7 +18,14 @@ GPIO.setup(channel, GPIO.IN)
 b = Bridge()
 b.find_bridge()
 print(b.ip)
-
+start_time = datetime.time(21, 0, 0)
+end_time = datetime.time(6, 0, 0)
+begin_timer = None
+#print(start_time)
+#print(end_time)
+#print(datetime.datetime.now().time())
+#print(start_time < datetime.datetime.now().time())
+#print(datetime.datetime.now().time() - start_time < datetime.timedelta(hours=6))
 if b.ip is not None:
     while True:
         time.sleep(5)
@@ -39,8 +46,10 @@ if b.ip is not None:
     while True:
         # get input from gpio
         sensor_input = GPIO.input(channel)
+        print("sensor input {sensor_input}".format(sensor_input=sensor_input))
         current_time = datetime.datetime.now().time()
-        if (current_time >= start_time and current_time <= end_time):
+        #if (start_time <= current_time <= end_time):
+        if True:
             #if gpio input means motion detected
                 # if timer is off 
                     # start timer for 5 minutes
@@ -48,20 +57,27 @@ if b.ip is not None:
                     # restart timer for 5 minutes
                 #if lights are not on
                     #turn on the lights with low brightness
-            status = l.get_light_status(username, 1)
+            response = l.get_light_status(username, 1)
+            light_data = json.loads(response.content)
+            print(light_data)
             if sensor_input == 1:
+                print("Movement detected!")
                 begin_timer = time.perf_counter()
-                if not status["state"]["on"]:
+                if not light_data["state"]["on"]:
+                    print("Turning on lights")
                     l.toggle_lights(username, 1, True)
             #if gpio input means motion not detected
                 # if timer is zero
                     #turn off the lights
             else:
+                print("No movement detected")
                 end_timer = time.perf_counter()
                 if begin_timer is not None and (end_timer - begin_timer) >= 5:
-                    if status["state"]["on"]:
+                    if light_data["state"]["on"]:
+                        print("Turning off lights")
                         l.toggle_lights(username, 1, False)
-
+        else:
+            print("Not the right time")
         #l.toggle_lights(username, 1, True)
         #time.sleep(5)
         #l.toggle_lights(username, 1, False)
