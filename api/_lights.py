@@ -7,21 +7,21 @@ class Lights:
 
     def get_lights(self, username):
         response = requests.get("http://{ip}/api/{username}/lights".format(ip = self.ip, username = username))
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
 
     def get_light_status(self, username, id):
         response = requests.get("http://{ip}/api/{username}/lights/{id}".format(ip = self.ip, username = username, id = id))
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
 
     def toggle_lights(self, username, id, toggleState):
         response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
         json = {"on":toggleState})
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
 
     def change_brightness(self, username, id, brightness):
@@ -31,8 +31,8 @@ class Lights:
             brightness = 254
         response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
         json = {"bri":brightness})
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
 
     def change_hue(self, username, id, hue):
@@ -42,8 +42,8 @@ class Lights:
             hue = 65535
         response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
         json = {"hue":hue})
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
 
     def change_saturation(self, username, id, saturation):
@@ -53,8 +53,8 @@ class Lights:
             saturation = 254
         response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
         json = {"sat":saturation})
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response
     
     def change_xy(self, username, id, x, y):
@@ -68,6 +68,6 @@ class Lights:
             y = 1
         response = requests.put("http://{ip}/api/{username}/lights/{id}/state".format(ip = self.ip, username = username, id = id),
         json = {"xy":[x,y]})
-        print(response.status_code)
-        print(response.content)
+        #print(response.status_code)
+        #print(response.content)
         return response

@@ -23,7 +23,7 @@ class Controller:
     def connect_to_bridge(self):
         self.bridge = Bridge()
         self.bridge.find_bridge()
-        print(self.bridge.ip)
+        #print(self.bridge.ip)
 
     def connect_to_light(self, username):
         self.light = Lights(self.bridge.ip)
@@ -55,11 +55,11 @@ class Controller:
             while True:
                 time.sleep(5)
                 self.status, self.user_data = self.bridge.create_user(self.device_type)
-                print(self.status)
-                print(username)
+                #print(self.status)
+                #print(username)
                 if (self.status == 200):
                     self.user_data = json.loads(self.user_data)
-                    print(self.user_data)
+                    #print(self.user_data)
                     if "success" in self.user_data[0]:
                         username = self.user_data[0]["success"]["username"]
                         break
@@ -67,7 +67,7 @@ class Controller:
             while True:
                 # get input from gpio
                 sensor_input = GPIO.input(self.channel)
-                print("sensor input {sensor_input}".format(sensor_input=sensor_input))
+                #print("sensor input {sensor_input}".format(sensor_input=sensor_input))
                 current_datetime = datetime.datetime.now()
                 if current_datetime <= current_datetime.replace(hour=7, minute=0, second=0, microsecond=0) or \
                     current_datetime >= current_datetime.replace(hour=21, minute=0, second=0, microsecond=0):
@@ -81,32 +81,32 @@ class Controller:
                                 #turn on the lights with low brightness
                         response = self.light.get_light_status(username, 1)
                         light_data = json.loads(response.content)
-                        print(light_data)
+                        #print(light_data)
                         if sensor_input == 1:
-                            print("Movement detected!")
+                            #print("Movement detected!")
                             begin_timer = time.perf_counter()
                             if not light_data["state"]["on"]:
-                                print("Turning on lights")
+                                #print("Turning on lights")
                                 self.toggle_night_lamp(username, True)
                         #if gpio input means motion not detected
                             # if timer is zero
                                 #turn off the lights
                         else:
-                            print("No movement detected")
+                            #print("No movement detected")
                             end_timer = time.perf_counter()
                             if begin_timer is None or \
                                begin_timer is not None and (end_timer - begin_timer) >= 60:
                                 if light_data["state"]["on"]:
-                                    print("Turning off lights")
+                                    #print("Turning off lights")
                                     self.toggle_night_lamp(username, False)
-                else:
-                    print("Not the right time")
 
 
 if __name__ == '__main__':
-    print("Inside main")
-    controller = Controller()
-    controller.main()
-
+    #print("Inside main")
+    try:
+        controller = Controller()
+        controller.main()
+    except Exception as e:
+        print("Some exception occurred: " + str(e))
 
 
