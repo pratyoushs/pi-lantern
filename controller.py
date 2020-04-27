@@ -2,7 +2,7 @@ import requests
 import json
 import time
 import datetime
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from api._bridge import Bridge
 from api._lights import Lights
 
@@ -15,9 +15,9 @@ class Controller:
         self.light = None
 
     def set_GPIO_data(self):
-        #GPIO.setwarnings(False)
-        #GPIO.setmode(GPIO.BOARD)
-        #GPIO.setup(channel, GPIO.IN)
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.channel, GPIO.IN)
         pass
 
     def connect_to_bridge(self):
@@ -29,20 +29,28 @@ class Controller:
         self.light = Lights(self.bridge.ip)
         self.light.get_lights(username)
 
-    def toggle_night_lamp(self, username):
-        self.light.toggle_lights(username, 1, True)
-        self.light.toggle_lights(username, 2, True)
-        self.light.change_brightness(username, 1, 50)
-        self.light.change_brightness(username, 2, 50)
-        self.light.change_hue(username, 1, 23)
-        self.light.change_hue(username, 2, 23)
-        self.light.change_saturation(username, 1, 100)
-        self.light.change_saturation(username, 2, 100)
+    def toggle_night_lamp(self, username, toggle_value):
+        if toggle_value:
+            self.light.toggle_lights(username, 1, True)
+            self.light.toggle_lights(username, 2, True)
+            self.light.change_xy(username, 1, 0.6, 0.5)
+            self.light.change_xy(username, 2, 0.6, 0.5)
+            self.light.change_brightness(username, 1, 50)
+            self.light.change_brightness(username, 2, 50)
+            #self.light.change_hue(username, 1, 23)
+            #self.light.change_hue(username, 2, 23)
+            self.light.change_saturation(username, 1, 254)
+            self.light.change_saturation(username, 2, 254)
+            
+        else:
+            self.light.toggle_lights(username, 1, False)
+            self.light.toggle_lights(username, 2, False)
 
     def main(self):
         self.set_GPIO_data()
         self.connect_to_bridge()
         username = None
+        begin_timer = None
         if self.bridge.ip is not None:
             while True:
                 time.sleep(5)
@@ -55,10 +63,10 @@ class Controller:
                     if "success" in self.user_data[0]:
                         username = self.user_data[0]["success"]["username"]
                         break
-            connect_to_light(username)
+            self.connect_to_light(username)
             while True:
                 # get input from gpio
-                sensor_input = 1#GPIO.input(channel)
+                sensor_input = GPIO.input(self.channel)
                 print("sensor input {sensor_input}".format(sensor_input=sensor_input))
                 current_datetime = datetime.datetime.now()
                 if current_datetime <= current_datetime.replace(hour=7, minute=0, second=0, microsecond=0) or \
@@ -79,19 +87,18 @@ class Controller:
                             begin_timer = time.perf_counter()
                             if not light_data["state"]["on"]:
                                 print("Turning on lights")
-                                self.light.toggle_lights(username, 1, True)
-                                self.light.toggle_lights(username, 2, True)
-                                self.light.change_brightness(username,)
+                                self.toggle_night_lamp(username, True)
                         #if gpio input means motion not detected
                             # if timer is zero
                                 #turn off the lights
                         else:
                             print("No movement detected")
                             end_timer = time.perf_counter()
-                            if begin_timer is not None and (end_timer - begin_timer) >= 5:
+                            if begin_timer is None or \
+                               begin_timer is not None and (end_timer - begin_timer) >= 60:
                                 if light_data["state"]["on"]:
                                     print("Turning off lights")
-                                    self.light.toggle_lights(username, 1, False)
+                                    self.toggle_night_lamp(username, False)
                 else:
                     print("Not the right time")
 
