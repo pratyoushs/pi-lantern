@@ -35,8 +35,8 @@ class Controller:
             self.light.toggle_lights(username, 2, True)
             self.light.change_xy(username, 1, 0.6, 0.5)
             self.light.change_xy(username, 2, 0.6, 0.5)
-            self.light.change_brightness(username, 1, 50)
-            self.light.change_brightness(username, 2, 50)
+            self.light.change_brightness(username, 1, 20)
+            self.light.change_brightness(username, 2, 20)
             #self.light.change_hue(username, 1, 23)
             #self.light.change_hue(username, 2, 23)
             self.light.change_saturation(username, 1, 254)
@@ -51,6 +51,8 @@ class Controller:
         self.connect_to_bridge()
         username = None
         begin_timer = None
+        #status of light, True = on, False = off
+        light_status = True
         if self.bridge.ip is not None:
             while True:
                 time.sleep(5)
@@ -65,40 +67,44 @@ class Controller:
                         break
             self.connect_to_light(username)
             while True:
-                # get input from gpio
-                sensor_input = GPIO.input(self.channel)
-                #print("sensor input {sensor_input}".format(sensor_input=sensor_input))
                 current_datetime = datetime.datetime.now()
                 if current_datetime <= current_datetime.replace(hour=7, minute=0, second=0, microsecond=0) or \
                     current_datetime >= current_datetime.replace(hour=21, minute=0, second=0, microsecond=0):
-                    if True:
-                        #if gpio input means motion detected
-                            # if timer is off 
-                                # start timer for 5 minutes
-                            # else
-                                # restart timer for 5 minutes
-                            #if lights are not on
-                                #turn on the lights with low brightness
-                        response = self.light.get_light_status(username, 1)
-                        light_data = json.loads(response.content)
-                        #print(light_data)
-                        if sensor_input == 1:
-                            #print("Movement detected!")
-                            begin_timer = time.perf_counter()
-                            if not light_data["state"]["on"]:
-                                #print("Turning on lights")
-                                self.toggle_night_lamp(username, True)
-                        #if gpio input means motion not detected
-                            # if timer is zero
-                                #turn off the lights
-                        else:
-                            #print("No movement detected")
-                            end_timer = time.perf_counter()
-                            if begin_timer is None or \
-                               begin_timer is not None and (end_timer - begin_timer) >= 60:
-                                if light_data["state"]["on"]:
-                                    #print("Turning off lights")
-                                    self.toggle_night_lamp(username, False)
+                    # get input from gpio
+                    sensor_input = GPIO.input(self.channel)
+                    #if gpio input means motion detected
+                        # if timer is off 
+                            # start timer for 5 minutes
+                        # else
+                            # restart timer for 5 minutes
+                        #if lights are not on
+                            #turn on the lights with low brightness
+                    response = self.light.get_light_status(username, 1)
+                    light_data = json.loads(response.content)
+                    #print(light_data)
+                    #print("sensor input {sensor_input}".format(sensor_input=sensor_input))
+                    if sensor_input == 1:
+                        #print("Movement detected!")
+                        begin_timer = time.perf_counter()
+                        if not light_data["state"]["on"]:
+                            #print("Turning on lights")
+                            self.toggle_night_lamp(username, True)
+                            light_status = True
+                    #if gpio input means motion not detected
+                        # if timer is zero
+                            #turn off the lights
+                    else:
+                        #print("No movement detected")
+                        end_timer = time.perf_counter()
+                        if begin_timer is None or \
+                           begin_timer is not None and (end_timer - begin_timer) >= 30:
+                            if light_data["state"]["on"]:
+                                #print("Turning off lights")
+                                self.toggle_night_lamp(username, False)
+                                light_status = False
+                elif light_status:
+                    self.toggle_night_lamp(username, False)
+                    light_status = False
 
 
 if __name__ == '__main__':
